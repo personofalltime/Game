@@ -71,27 +71,32 @@ void AgaemCharacter::BeginPlay()
 //////////////////////////////////////////////////////////////////////////
 // Input
 
-void AgaemCharacter::shoot(){
+void AgaemCharacter::Shoot(){
 
 	FVector loc;
 	FRotator rot;
 	FHitResult hit;
 
-	GetController()->GetPlayerViewPoint(loc, rot);
-
-	FVector start = loc;
-	FVector end = start + (rot.Vector() * 1000);
-
-	FCollisionQueryParams collision;
-
-	GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Visibility, collision);
-
-	auto actors = hit.GetActor();
-
-	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Some debug message!"));
 
 
-	actors->SetActorLocation(start);
+	if (Controller) {
+		Controller->GetPlayerViewPoint(loc, rot);
+
+		FVector start = loc;
+		FVector end = start + (rot.Vector() * 1500);
+
+		FCollisionQueryParams collision;
+
+		GetWorld()->LineTraceSingleByChannel(hit, start, end, ECC_Visibility, collision);
+
+		auto actors = hit.GetActor();
+
+		if (actors && actors->IsRootComponentMovable()) {
+			GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("Shot an actor"));
+
+			actors->SetActorLocation(start);
+		}
+	}
 }
 
 void AgaemCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -109,11 +114,9 @@ void AgaemCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AgaemCharacter::Look);
 
-		PlayerInputComponent->BindAction("shoot", IE_Pressed, this, &AgaemCharacter::shoot);
-
+		// Shooting
+		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &AgaemCharacter::Shoot);
 	}
-
-
 }
 
 void AgaemCharacter::Move(const FInputActionValue& Value)
@@ -123,19 +126,22 @@ void AgaemCharacter::Move(const FInputActionValue& Value)
 
 	if (Controller != nullptr)
 	{
-		// find out which way is forward
-		const FRotator Rotation = Controller->GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		// Only allow the player to move if not dashing
+		if (!isDashing()) {
+			// find out which way is forward
+			const FRotator Rotation = Controller->GetControlRotation();
+			const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
-		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+			// get forward vector
+			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+			// get right vector 
+			const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+			// add movement 
+			AddMovementInput(ForwardDirection, MovementVector.Y);
+			AddMovementInput(RightDirection, MovementVector.X);
+		}
 	}
 }
 
@@ -152,6 +158,6 @@ void AgaemCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-
-
-
+bool AgaemCharacter::isDashing() {
+	return !dashVector.IsZero();
+}
