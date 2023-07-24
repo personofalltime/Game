@@ -77,8 +77,6 @@ void AgaemCharacter::Shoot(){
 	FRotator rot;
 	FHitResult hit;
 
-
-
 	if (Controller) {
 		Controller->GetPlayerViewPoint(loc, rot);
 
@@ -103,20 +101,43 @@ void AgaemCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 {
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
 		//Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AgaemCharacter::Jump);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &AgaemCharacter::StopJumping);
 
 		//Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AgaemCharacter::Move);
+		// Also call this to reset the buttons when we finish moving
+		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AgaemCharacter::Move);
 
 		//Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AgaemCharacter::Look);
 
 		// Shooting
 		EnhancedInputComponent->BindAction(ShootAction, ETriggerEvent::Triggered, this, &AgaemCharacter::Shoot);
+
+		// Dashing
+		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Triggered, this, &AgaemCharacter::StartDash);
 	}
+}
+
+void AgaemCharacter::Jump()
+{
+	ACharacter::Jump();
+	InputDirection.Z = 1.0f;
+}
+
+void AgaemCharacter::StopJumping()
+{
+	ACharacter::StopJumping();
+	InputDirection.Z = 0.0f;
+}
+
+FRotator AgaemCharacter::GetYawRotation() {
+	// find out which way is forward
+	const FRotator Rotation = Controller->GetControlRotation();
+	const FRotator YawRotation(0, Rotation.Yaw, 0);
+	return YawRotation;
 }
 
 void AgaemCharacter::Move(const FInputActionValue& Value)
@@ -124,13 +145,14 @@ void AgaemCharacter::Move(const FInputActionValue& Value)
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
+	InputDirection.Y = MovementVector.X;
+	InputDirection.X = MovementVector.Y;
+
 	if (Controller != nullptr)
 	{
 		// Only allow the player to move if not dashing
-		if (!isDashing()) {
-			// find out which way is forward
-			const FRotator Rotation = Controller->GetControlRotation();
-			const FRotator YawRotation(0, Rotation.Yaw, 0);
+		if (!IsDashing()) {
+			FRotator YawRotation = GetYawRotation();
 
 			// get forward vector
 			const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
@@ -143,6 +165,29 @@ void AgaemCharacter::Move(const FInputActionValue& Value)
 			AddMovementInput(RightDirection, MovementVector.X);
 		}
 	}
+}
+
+void AgaemCharacter::StartDash() {
+	// Do not dash again if already dashing
+	if (IsDashing()) return;
+
+	// Get the desired dash direction
+	DashVector = InputDirection.GetSafeNormal() * DashSpeed;
+	
+	// Finally, rotate the dash vector to bo global
+	DashVector = GetYawRotation().RotateVector(DashVector);
+
+	GetWorldTimerManager().SetTimer(DashTimerHandle, this, &AgaemCharacter::StopDash, DashTime);
+}
+
+void AgaemCharacter::StopDash() {
+	GetWorldTimerManager().ClearTimer(DashTimerHandle);
+	DashVector = FVector::Zero();
+	// Stop the character
+	// TODO: remove this - this is jank so that velocity gets reset to almost 0
+	// TODO: make the dashes more smooth
+	// TODO: maybe add a grace period for button presses?
+	this->LaunchCharacter(FVector(0.01f, 0.0f, 0.0f), true, true);
 }
 
 void AgaemCharacter::Look(const FInputActionValue& Value)
@@ -158,6 +203,11 @@ void AgaemCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-bool AgaemCharacter::isDashing() {
-	return !dashVector.IsZero();
+void AgaemCharacter::Tick(float DeltaSeconds) {
+	if (!IsDashing()) return;
+	this->LaunchCharacter(DashVector, true, true);
+}
+
+bool AgaemCharacter::IsDashing() {
+	return !DashVector.IsZero();
 }
