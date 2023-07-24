@@ -66,6 +66,9 @@ void AgaemCharacter::BeginPlay()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
+
+	// Start with full dashes
+	AvailableDashes = MaxAvailableDashes;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -171,11 +174,21 @@ void AgaemCharacter::StartDash() {
 	// Do not dash again if already dashing
 	if (IsDashing()) return;
 
+	// If we have no more dashes, we can't dash
+	if (AvailableDashes <= 0) return;
+
 	// Get the desired dash direction
 	DashVector = InputDirection.GetSafeNormal() * DashSpeed;
 	
 	// Finally, rotate the dash vector to bo global
 	DashVector = GetYawRotation().RotateVector(DashVector);
+
+	// If we removed the first dash, queue dash refreshing
+	if (AvailableDashes == MaxAvailableDashes) 
+		GetWorldTimerManager().SetTimer(DashRefreshTimerHandle, this, &AgaemCharacter::RefreshDash, DashRefreshTime, true);
+
+	// Reduce the number of available dashes
+	AvailableDashes -= 1;
 
 	GetWorldTimerManager().SetTimer(DashTimerHandle, this, &AgaemCharacter::StopDash, DashTime);
 }
@@ -187,7 +200,15 @@ void AgaemCharacter::StopDash() {
 	// TODO: remove this - this is jank so that velocity gets reset to almost 0
 	// TODO: make the dashes more smooth
 	// TODO: maybe add a grace period for button presses?
+	// TODO: fix animations
 	this->LaunchCharacter(FVector(0.01f, 0.0f, 0.0f), true, true);
+}
+
+void AgaemCharacter::RefreshDash() {
+	AvailableDashes++;
+
+	if (AvailableDashes >= MaxAvailableDashes)
+		GetWorldTimerManager().ClearTimer(DashRefreshTimerHandle);
 }
 
 void AgaemCharacter::Look(const FInputActionValue& Value)

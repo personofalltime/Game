@@ -46,9 +46,6 @@ class AgaemCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	struct FTimerHandle DashTimerHandle;
-
 	/** A vector that describes the movement keys/axes that are currently pressed */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	FVector InputDirection;
@@ -61,6 +58,18 @@ class AgaemCharacter : public ACharacter
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float DashSpeed;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float DashRefreshTime;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	int MaxAvailableDashes;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	int AvailableDashes;
+
+	struct FTimerHandle DashTimerHandle;
+	struct FTimerHandle DashRefreshTimerHandle;
 
 public:
 	AgaemCharacter();
@@ -83,6 +92,9 @@ protected:
 
 	/** Called for dashing input*/
 	void StopDash();
+
+	/** Called for refreshing dashes */
+	void RefreshDash();
 
 	/** Called for shooting input*/
 	void Shoot();
