@@ -179,6 +179,9 @@ void AgaemCharacter::StartDash() {
 
 	// Get the desired dash direction
 	DashVector = InputDirection.GetSafeNormal() * DashSpeed;
+
+	// If no direction pressed, instead move forwards
+	if (DashVector.IsZero()) DashVector.X = DashSpeed;
 	
 	// Finally, rotate the dash vector to bo global
 	DashVector = GetYawRotation().RotateVector(DashVector);
@@ -189,6 +192,8 @@ void AgaemCharacter::StartDash() {
 
 	// Reduce the number of available dashes
 	AvailableDashes -= 1;
+
+	IsCoyoteTimeActive = false;
 
 	GetWorldTimerManager().SetTimer(DashTimerHandle, this, &AgaemCharacter::StopDash, DashTime);
 }
@@ -201,6 +206,7 @@ void AgaemCharacter::StopDash() {
 	// TODO: make the dashes more smooth
 	// TODO: maybe add a grace period for button presses?
 	// TODO: fix animations
+	// TODO: set a custom movement mode
 	this->LaunchCharacter(FVector(0.01f, 0.0f, 0.0f), true, true);
 }
 
@@ -229,6 +235,10 @@ void AgaemCharacter::Tick(float DeltaSeconds) {
 	this->LaunchCharacter(DashVector, true, true);
 }
 
-bool AgaemCharacter::IsDashing() {
+bool AgaemCharacter::IsDashing() const {
 	return !DashVector.IsZero();
+}
+
+bool AgaemCharacter::CanJumpInternal_Implementation() const {
+	return IsCoyoteTimeActive || ACharacter::CanJumpInternal_Implementation();
 }

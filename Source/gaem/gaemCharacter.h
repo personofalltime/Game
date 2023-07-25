@@ -68,6 +68,13 @@ class AgaemCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	int AvailableDashes;
 
+	// Coyote time
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	float CoyoteTimeDuration;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	bool IsCoyoteTimeActive;
+
 	struct FTimerHandle DashTimerHandle;
 	struct FTimerHandle DashRefreshTimerHandle;
 
@@ -101,6 +108,8 @@ protected:
 
 	FRotator GetYawRotation();
 
+	bool CanJumpInternal_Implementation() const override;
+
 protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -119,6 +128,6 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	UFUNCTION(BlueprintCallable, Category = "Movement")
-	bool IsDashing();
+	bool IsDashing() const;
 };
 
