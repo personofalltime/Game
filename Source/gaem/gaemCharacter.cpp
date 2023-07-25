@@ -193,7 +193,7 @@ void AgaemCharacter::StartDash() {
 	// Reduce the number of available dashes
 	AvailableDashes -= 1;
 
-	IsCoyoteTimeActive = false;
+	bIsCoyoteTimeActive = false;
 
 	GetWorldTimerManager().SetTimer(DashTimerHandle, this, &AgaemCharacter::StopDash, DashTime);
 }
@@ -240,5 +240,5 @@ bool AgaemCharacter::IsDashing() const {
 }
 
 bool AgaemCharacter::CanJumpInternal_Implementation() const {
-	return IsCoyoteTimeActive || ACharacter::CanJumpInternal_Implementation();
+	return bIsCoyoteTimeActive || ACharacter::CanJumpInternal_Implementation();
 }

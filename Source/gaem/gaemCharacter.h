@@ -73,7 +73,7 @@ class AgaemCharacter : public ACharacter
 	float CoyoteTimeDuration;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool IsCoyoteTimeActive;
+	bool bIsCoyoteTimeActive;
 
 	struct FTimerHandle DashTimerHandle;
 	struct FTimerHandle DashRefreshTimerHandle;
