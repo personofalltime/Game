@@ -2,6 +2,7 @@
 
 #include "gaemGameMode.h"
 #include "gaemCharacter.h"
+#include "DimensionInfo.h"
 #include "UObject/ConstructorHelpers.h"
 
 AgaemGameMode::AgaemGameMode()

@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "DimensionTriggerBox.h"
 #include "DimensionInfo.generated.h"
 
 
@@ -14,6 +15,6 @@ struct FDimensionInfo
 {
 	GENERATED_BODY()
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	FVector MapPosition;
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite)
+	class ADimensionTriggerBox* DimensionTrigger;
 };

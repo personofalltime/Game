@@ -27,5 +27,8 @@ public:
 	// virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = State, meta = (AllowPrivateAccess = "true"))
-	bool bIsDimension1;
+	int32 DimensionNumber;
+
+	UFUNCTION(BlueprintCallable)
+	void MoveToDimension(int32 NewDimensionNumber);
 };
