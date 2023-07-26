@@ -121,6 +121,9 @@ void AgaemCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInpu
 
 		// Dashing
 		EnhancedInputComponent->BindAction(DashAction, ETriggerEvent::Triggered, this, &AgaemCharacter::StartDash);
+
+		// Shifting dimensions
+		EnhancedInputComponent->BindAction(MoveDimensionAction, ETriggerEvent::Triggered, this, &AgaemCharacter::MoveDimensions);
 	}
 }
 
@@ -228,6 +231,12 @@ void AgaemCharacter::Look(const FInputActionValue& Value)
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
 	}
+}
+
+void AgaemCharacter::MoveDimensions() {
+	UAbilityReceiver* AbilityReceiver = GetComponentByClass<UAbilityReceiver>();
+	// Moves from dimension 0 to 1 and vise versa
+	AbilityReceiver->MoveToDimension(1 - AbilityReceiver->DimensionNumber);
 }
 
 void AgaemCharacter::Tick(float DeltaSeconds) {

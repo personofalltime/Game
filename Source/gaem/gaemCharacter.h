@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "TimerManager.h"
+#include "AbilityReceiver.h"
 #include "gaemCharacter.generated.h"
 
 
@@ -45,6 +46,10 @@ class AgaemCharacter : public ACharacter
 	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	class UInputAction* LookAction;
+
+	/** Move between dimensions Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	class UInputAction* MoveDimensionAction;
 
 	/** A vector that describes the movement keys/axes that are currently pressed */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -105,6 +110,9 @@ protected:
 
 	/** Called for shooting input*/
 	void Shoot();
+
+	/** Called for moving between dimensions input*/
+	void MoveDimensions();
 
 	FRotator GetYawRotation();
 

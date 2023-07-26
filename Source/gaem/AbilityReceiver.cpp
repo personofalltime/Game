@@ -19,6 +19,11 @@ void UAbilityReceiver::BeginPlay()
 	Super::BeginPlay();
 
 	DimensionNumber = 0;
+	
+	AActor* owner = GetOwner();
+	owner->bGenerateOverlapEventsDuringLevelStreaming = true;
+	// Try to get a component on which we can set bGenerateOverlapEvents to true
+	owner->GetComponentByClass<UPrimitiveComponent>()->SetGenerateOverlapEvents(true);
 }
 
 void UAbilityReceiver::MoveToDimension(int32 NewDimensionNumber) {
